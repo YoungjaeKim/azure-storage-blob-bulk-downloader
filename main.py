@@ -1,7 +1,7 @@
 import argparse
 import json
 import os
-from azure.storage.blob import BlockBlobService
+from azure.storage.blob import BlockBlobService, Blob
 from azure.storage.blob import PublicAccess
 import yaml
 
@@ -13,6 +13,7 @@ class Parameter:
     container: str = ""
     limit: int = 5000
     download_directory: str = "download"
+    timeout: int = None
 
     def read(self, config):
         self.enable = bool(config['enable'])
@@ -21,6 +22,7 @@ class Parameter:
         self.account_key = str(config['account_key'])
         self.container = str(config['container'])
         self.download_directory = str(config['download_directory']).strip("/")
+        self.timeout = None if (not str(config['timeout']) or int(config['timeout']) == 0) else int(config['timeout'])
 
 
 if __name__ == '__main__':
@@ -28,11 +30,12 @@ if __name__ == '__main__':
 
     # Set configuration
     parser = argparse.ArgumentParser()
+    parser.add_argument("--enable", help="run script", type=bool, default=False)
     parser.add_argument("--config", help="configuration yaml file", type=str,
                         default='config.yaml')
     parser.add_argument("--container", help="a container name of Azure Storage", type=str)
-    parser.add_argument("--limit", help="if limit reached, exit immediately", type=int)
-    parser.add_argument("--download", help="download directory", type=str, default="download")
+    parser.add_argument("--limit", help="if limit reached, exit immediately", type=int, default=-1)
+    parser.add_argument("--download", help="download directory", type=str)
     args = parser.parse_args()
 
     if not os.path.isfile(args.config):
@@ -44,11 +47,13 @@ if __name__ == '__main__':
         config_nodes = yaml.load(yaml_text, Loader=yaml.Loader)
         param.read(config_nodes)
 
-    if not args.limit:
+    if args.enable:
+        param.enable = args.enable
+    if args.limit >= 0:
         param.limit = args.limit
-    if not args.download:
+    if args.download:
         param.download_directory = args.download
-    if not args.container:
+    if args.container:
         param.container = args.container
 
     if not param.download_directory:
@@ -60,7 +65,7 @@ if __name__ == '__main__':
     if not param.enable:
         print("Exit because 'enable' is False")
         exit(0)
-    print("{0} items will be downloaded to {1}/".format(param.limit, param.download_directory))
+    print("{0} items will be downloaded to '{1}' directory".format(param.limit, param.download_directory))
 
     # Azure Storage access
     # name of your storage account and the access key from Settings->AccessKeys->key1
@@ -71,8 +76,14 @@ if __name__ == '__main__':
 
     # code below lists all the blobs in the container and downloads them one after another
     for blob in generator:
-        print("blob: {0}".format(blob.name))
+        limit_count += 1
+        print("#{0}: {1}".format(limit_count, blob.name), end='', flush=True)
+
         # check if the path contains a folder structure, create the folder structure
+        result_blob: Blob = None
+        if limit_count < 4170:
+            print(" - skip")
+            continue
         if "/" in "{}".format(blob.name):
             print("there is a path in this")
             # extract the folder path and check if that folder exists locally, and if not create it
@@ -82,21 +93,27 @@ if __name__ == '__main__':
             if os.path.isdir(os.getcwd() + "/" + head):
                 # download the files to this directory
                 print("directory and sub directories exist")
-                block_blob_service.get_blob_to_path(param.container, blob.name,
+                result_blob = block_blob_service.get_blob_to_path(param.container, blob.name,
                                                     "{0}/{1}/{2}/{3}".format(os.getcwd(), param.download_directory,
-                                                                             head, tail))
+                                                                             head, tail), timeout=param.timeout)
             else:
                 # create the diretcory and download the file to it
                 print("directory doesn't exist, creating it now")
                 os.makedirs(os.getcwd() + "/" + head, exist_ok=True)
                 print("directory created, download initiated")
-                block_blob_service.get_blob_to_path(param.container, blob.name,
+                result_blob = block_blob_service.get_blob_to_path(param.container, blob.name,
                                                     "{0}/{1}/{2}/{3}".format(os.getcwd(), param.download_directory,
-                                                                             head, tail))
+                                                                             head, tail), timeout=param.timeout)
         else:
-            block_blob_service.get_blob_to_path(param.container, blob.name, param.download_directory + "/" + blob.name)
-        limit_count += 1
-        if limit_count >= param.limit:
+            result_blob = block_blob_service.get_blob_to_path(param.container, blob.name,
+                                                              param.download_directory + "/" + blob.name,
+                                                              timeout=param.timeout)
+
+        if result_blob:
+            print(" ({0} bytes)".format(result_blob.properties.content_length))
+        else:
+            print(" - ignored")
+        if param.limit != 0 and limit_count >= param.limit:
             print("limit {0} reached. exit now.".format(param.limit))
             break
 
