@@ -57,6 +57,9 @@ if __name__ == '__main__':
     if not os.path.exists(param.download_directory):
         os.makedirs(param.download_directory)
 
+    if not param.enable:
+        print("Exit because 'enable' is False")
+        exit(0)
     print("{0} items will be downloaded to {1}/".format(param.limit, param.download_directory))
 
     # Azure Storage access
