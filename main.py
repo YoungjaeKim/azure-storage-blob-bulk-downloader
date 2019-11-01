@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 from azure.storage.blob import BlockBlobService, Blob
-from azure.storage.blob import PublicAccess
 import yaml
 
 
@@ -14,6 +13,7 @@ class Parameter:
     limit: int = 5000
     download_directory: str = "download"
     timeout: int = None
+    skip: int = 0
 
     def read(self, config):
         self.enable = bool(config['enable'])
@@ -23,6 +23,7 @@ class Parameter:
         self.container = str(config['container'])
         self.download_directory = str(config['download_directory']).strip("/")
         self.timeout = None if (not str(config['timeout']) or int(config['timeout']) == 0) else int(config['timeout'])
+        self.skip = int(config['skip'])
 
 
 if __name__ == '__main__':
@@ -36,6 +37,7 @@ if __name__ == '__main__':
     parser.add_argument("--container", help="a container name of Azure Storage", type=str)
     parser.add_argument("--limit", help="if limit reached, exit immediately", type=int, default=-1)
     parser.add_argument("--download", help="download directory", type=str)
+    parser.add_argument("--skip", help="skip to n-th item and continue", type=int, default=0)
     args = parser.parse_args()
 
     if not os.path.isfile(args.config):
@@ -55,6 +57,8 @@ if __name__ == '__main__':
         param.download_directory = args.download
     if args.container:
         param.container = args.container
+    if args.skip > 0:
+        param.skip = args.skip
 
     if not param.download_directory:
         print("ERROR: please set download directory")
@@ -79,11 +83,12 @@ if __name__ == '__main__':
         limit_count += 1
         print("#{0}: {1}".format(limit_count, blob.name), end='', flush=True)
 
+        if param.skip > 0 and limit_count < param.skip:
+            print(" - skip till {0} items".format(param.skip))
+            continue
+
         # check if the path contains a folder structure, create the folder structure
         result_blob: Blob = None
-        if limit_count < 4170:
-            print(" - skip")
-            continue
         if "/" in "{}".format(blob.name):
             print("there is a path in this")
             # extract the folder path and check if that folder exists locally, and if not create it

@@ -2,7 +2,7 @@
 
 This script downloads blobs from an Azure Storage Blob container.
 
-It is useful when you want to download only a `limit` number of items from a container.
+It is useful when you want to download only a `limit` number of items from a container. It also supports `skip` parameter that allows us to continue from a failure moment.
 
 ## How to use
 
@@ -12,22 +12,26 @@ By default, it reads `config.yaml` file to setup Azure Storage credential and co
 $ python main.py
 ```
 
-### Supported Arguments
-```bash
-$ python main.py --config config.yaml --enable True --container 'photos' --limit 500 --download 'temp'
-```
-
-## config.yaml
+### config.yaml
 
 ```yaml
-enable: True
+enable: True  # execution switch of this script
 limit: 10000  # number of blobs to download. set 0 if you want to download all
 account_name: '{your_storage_name}'
 account_key: '{your_storage_account_key}'
 container: '{your_container_name}'  # a container(folder) name in a storage
 download_directory: "download"  # local directory to store items
 timeout: 30  # timeout in seconds for each blob download
+skip: 10  # skip 10 items and then download
 ```
+
+### Supported Arguments
+```bash
+$ python main.py --config config.yaml --enable True --container 'photos' --limit 500 --download 'temp' --skip 100
+```
+
+The arguments are same as `config.yaml` field names. Argument values will overwrite yaml value.
+
 
 ## output example
 ```
