@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 from azure.storage.blob import BlockBlobService, Blob
 import yaml
@@ -73,7 +72,8 @@ if __name__ == '__main__':
     if not param.enable:
         print("Exit because 'enable' is False")
         exit(0)
-    print("{0} items will be downloaded to '{1}' directory".format(param.limit, param.download_directory))
+    print("{0} item{1} will be downloaded to '{2}' directory".format(
+        param.limit, "s" if param.limit > 1 else "", param.download_directory))
 
     # Azure Storage access
     # name of your storage account and the access key from Settings->AccessKeys->key1
