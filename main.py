@@ -3,6 +3,8 @@ import json
 import os
 from azure.storage.blob import BlockBlobService, Blob
 import yaml
+from timeit import default_timer as timer
+from datetime import timedelta
 
 
 class Parameter:
@@ -27,6 +29,8 @@ class Parameter:
 
 
 if __name__ == '__main__':
+    start_time: float = timer()
+
     limit_count = 0
 
     # Set configuration
@@ -121,5 +125,8 @@ if __name__ == '__main__':
         if param.limit != 0 and limit_count >= param.limit:
             print("limit {0} reached. exit now.".format(param.limit))
             break
+
+    end_time: float = timer()
+    print("main process finished. ({0} elapsed)".format(timedelta(seconds=end_time-start_time)))
 
     exit(0)
