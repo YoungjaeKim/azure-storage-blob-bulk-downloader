@@ -1,0 +1,8 @@
+enable: True
+limit: 1
+timeout: 30
+skip: 0
+account_name: 'examplestorageblob'
+account_key: '3cX4dQyXuc+4SAxZ7VdciTMMZRiVEvSFX6g=='
+container: 'images'
+download_directory: "download"

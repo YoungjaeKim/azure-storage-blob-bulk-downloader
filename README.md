@@ -20,12 +20,12 @@ By default, it reads `config.yaml` file to setup Azure Storage credential and co
 ```yaml
 enable: True  # execution switch of this script
 limit: 10000  # number of blobs to download. set 0 if you want to download all
+timeout: 30  # timeout in seconds for each blob download
+skip: 10  # skip 10 items and then download
 account_name: '{your_storage_name}'
 account_key: '{your_storage_account_key}'
 container: '{your_container_name}'  # a container(folder) name in a storage
 download_directory: "download"  # local directory to store items
-timeout: 30  # timeout in seconds for each blob download
-skip: 10  # skip 10 items and then download
 ```
 
 ### Supported Arguments

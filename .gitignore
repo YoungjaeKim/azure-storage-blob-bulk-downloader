@@ -107,5 +107,6 @@ venv.bak/
 /download
 # configuration file. ignore it for security reason
 *.yaml
+!example.yaml
 
 venv*
