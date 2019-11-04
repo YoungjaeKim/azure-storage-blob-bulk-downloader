@@ -52,6 +52,7 @@ config file: config.yaml
 #9999: 00441f9c-896c-4e9e-a6bd-07487b596d22.jpg (33559 bytes)
 #10000: 004421a9-0371-45ee-8341-ddcb8b656a86.jpg (64377 bytes)
 limit 10000 reached. exit now.
+main process finished. (0:12:06.351154 elapsed)
 ```
 
 ## Reference
