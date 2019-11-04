@@ -1,0 +1,8 @@
+PyYAML
+azure
+azure-common
+azure-nspkg
+azure-storage
+azure-storage-blob
+azure-storage-common
+azure-storage-nspkg

@@ -4,13 +4,16 @@ This script downloads blobs from an Azure Storage Blob container.
 
 It is useful when you want to download only a `limit` number of items from a container. It also supports `skip` parameter that allows us to continue from a failure moment.
 
+Note that I've only considered under Python `3.7` environment.
+
 ## How to use
 
-By default, it reads `config.yaml` file to setup Azure Storage credential and configurable values.
-
 ```bash
+$ pip install requirements.txt
 $ python main.py
 ```
+
+By default, it reads `config.yaml` file to setup Azure Storage credential and configurable values.
 
 ### config.yaml
 
